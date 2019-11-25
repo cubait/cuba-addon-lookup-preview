@@ -1,0 +1,5 @@
+@import "hover-ext";
+
+@mixin it_nexbit_cuba_lookuppreview {
+  @include it_nexbit_cuba_lookuppreview-hover-ext;
+}

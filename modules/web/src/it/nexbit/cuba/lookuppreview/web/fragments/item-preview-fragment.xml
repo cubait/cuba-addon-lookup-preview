@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<fragment xmlns="http://schemas.haulmont.com/cuba/screen/fragment.xsd">
+    <layout expand="scrollBox">
+        <buttonsPanel width="100%"
+                      stylename="item-preview-title-panel"
+                      expand="panelCaption">
+            <label id="panelCaption"
+                   htmlEnabled="true"
+                   align="MIDDLE_LEFT"/>
+            <hbox align="MIDDLE_RIGHT"
+                  spacing="true"
+                  width="AUTO">
+            <popupButton id="addBtn"
+                         visible="false"
+                         icon="PLUS"
+                         align="MIDDLE_RIGHT"/>
+            <button id="editBtn"
+                    visible="false"
+                    icon="EDIT"
+                    stylename="primary"
+                    align="MIDDLE_RIGHT"/>
+            <button id="removeBtn"
+                    enable="false"
+                    visible="false"
+                    icon="TRASH"
+                    stylename="danger"
+                    align="MIDDLE_RIGHT"/>
+            <checkBox id="selectAllCheckBox"
+                      visible="false"
+                      align="MIDDLE_RIGHT"/>
+            </hbox>
+        </buttonsPanel>
+        <scrollBox id="scrollBox"
+                   spacing="true"
+                   orientation="vertical"
+                   width="100%">
+        </scrollBox>
+        <hbox id="editActions"
+              visible="false"
+              align="MIDDLE_RIGHT"
+              spacing="true">
+            <button id="saveBtn" caption="mainMsg://actions.Ok" primary="true"/>
+            <button id="cancelBtn" caption="mainMsg://actions.Cancel"/>
+        </hbox>
+    </layout>
+</fragment>
+

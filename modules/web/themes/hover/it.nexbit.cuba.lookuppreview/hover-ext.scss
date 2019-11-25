@@ -1,0 +1,14 @@
+/* Define your theme modifications inside next mixin */
+@mixin it_nexbit_cuba_lookuppreview-hover-ext {
+    $lookuppreview-border: 1px solid #c1c1c1;
+    $lookuppreview-padding: 5px;
+
+    //.item-preview-fields-grid__move-icon {
+    //    border-right: $lookuppreview-border;
+    //    padding-right: $lookuppreview-padding;
+    //}
+    //.item-preview-fields-grid__remove-check-box {
+    //    border-left: $lookuppreview-border;
+    //    padding-left: $lookuppreview-padding;
+    //}
+}

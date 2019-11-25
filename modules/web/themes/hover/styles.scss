@@ -1,0 +1,11 @@
+@import "hover-defaults";
+@import "it.nexbit.cuba.lookuppreview/hover-ext-defaults";
+@import "app-components";
+@import "it.nexbit.cuba.lookuppreview/hover-ext";
+
+.hover {
+  // include auto-generated app components SCSS
+  @include app_components;
+
+  @include it_nexbit_cuba_lookuppreview-hover-ext;
+}
