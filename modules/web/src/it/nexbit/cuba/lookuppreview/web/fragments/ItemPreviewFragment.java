@@ -20,6 +20,8 @@ import com.haulmont.cuba.gui.screen.ScreenFragment;
 import com.haulmont.cuba.gui.screen.Subscribe;
 import com.haulmont.cuba.gui.screen.UiController;
 import com.haulmont.cuba.gui.screen.UiDescriptor;
+import com.haulmont.cuba.security.entity.User;
+import it.nexbit.cuba.lookuppreview.entity.EntityProperty;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -50,6 +52,8 @@ public class ItemPreviewFragment extends ScreenFragment {
     protected Messages messages;
     @Inject
     protected Actions actions;
+    @Inject
+    protected UserSessionSource userSessionSource;
 
     @Inject
     protected ScrollBoxLayout scrollBox;
@@ -77,32 +81,6 @@ public class ItemPreviewFragment extends ScreenFragment {
 
     private int nextRowIndex;
 
-    @Subscribe
-    protected void onInit(InitEvent event) {
-        panelCaption.setValue(messages.getMainMessage("lupreview.noItemCaption"));
-    }
-
-    protected void loadVisibleProperties() {
-        // TODO: load visibleProperties list from persistent storage
-//        if (visibleProperties == null) {
-            visibleProperties = previewView.getProperties().stream()
-                .map(ViewProperty::getName).collect(Collectors.toList());
-//        }
-    }
-
-    protected void initAddBtn() {
-        addBtn.removeAllActions();
-        for (ViewProperty property : previewView.getProperties()) {
-            if (!visibleProperties.contains(property.getName())) {
-                addBtn.addAction(new AddPropertyAction(property.getName()));
-            }
-        }
-        if (addBtn.getActions().isEmpty()) {
-            addBtn.setEnabled(false);
-        } else {
-            addBtn.setEnabled(true);
-        }
-    }
 
     @SuppressWarnings("unchecked")
     public void setItem(Entity item) {
@@ -134,8 +112,118 @@ public class ItemPreviewFragment extends ScreenFragment {
         itemDc.setItem(item);
     }
 
+    public boolean isEditing() {
+        return isEditing;
+    }
+
+    public void setEditing(boolean editing) {
+        if (editing != isEditing) {
+            isEditing = editing;
+            editBtn.setVisible(!editing);
+            addBtn.setVisible(editing);
+            removeBtn.setVisible(editing);
+            selectAllCheckBox.setVisible(editing);
+            editActions.setVisible(editing);
+
+            // hide/show edit controls in grid rows
+            for (int i = 0; i < visibleProperties.size(); i++) {
+                fieldsGrid.getComponentNN(0, i).setVisible(editing);
+                fieldsGrid.getComponentNN(2, i).setVisible(editing);
+            }
+
+            if (itemDc.getItemOrNull() == null && !editing) {
+                panelCaption.setValue(messages.getMainMessage("lupreview.noItemCaption"));
+                fieldsGrid.setVisible(false);
+                editBtn.setVisible(false);
+            }
+        }
+    }
+
+    @Subscribe
+    protected void onInit(InitEvent event) {
+        panelCaption.setValue(messages.getMainMessage("lupreview.noItemCaption"));
+    }
+
+    private List<EntityProperty> loadEntityProperties(boolean includeDefaults) {
+        String userClause = includeDefaults ? "(e.user is null or e.user.id = :userId)" : "e.user.id = :userId";
+        return dataManager.load(EntityProperty.class)
+                .query("select e from lupreview_EntityProperty e " +
+                        "where e.entityName = :entity and " + userClause +
+                        " order by e.sortOrder")
+                .view("entityProperty-all")
+                .parameter("userId", userSessionSource.currentOrSubstitutedUserId())
+                .parameter("entity", itemDc.getEntityMetaClass().getName())
+                .list();
+    }
+
+    protected void loadVisibleProperties() {
+        // load all settings for the current entity from db
+        List<EntityProperty> entityProperties = loadEntityProperties(true);
+
+        // if there are settings specific for the current user, use them..
+        visibleProperties = entityProperties.stream()
+                .filter(e -> e.getUser() != null)
+                .map(EntityProperty::getPropertyName)
+                .collect(Collectors.toList());
+        if (visibleProperties.isEmpty()) {
+            // .. otherwise filter out the settings with no user defined (they are the default settings, if any)
+            visibleProperties = entityProperties.stream()
+                    .filter(e -> e.getUser() == null)
+                    .map(EntityProperty::getPropertyName)
+                    .collect(Collectors.toList());
+        }
+
+        if (visibleProperties.isEmpty()) {
+            visibleProperties = previewView.getProperties().stream()
+                .map(ViewProperty::getName).collect(Collectors.toList());
+        }
+    }
+
+    protected void saveVisibleProperties() {
+        List<EntityProperty> entityProperties = loadEntityProperties(false);
+        List<EntityProperty> toCommit = new ArrayList<>();
+        List<EntityProperty> toRemove = new ArrayList<>(entityProperties);
+
+        User currentUser = userSessionSource.getUserSession().getCurrentOrSubstitutedUser();
+
+        for (int i = 0; i < visibleProperties.size(); i++) {
+            String property = visibleProperties.get(i);
+            EntityProperty ep = entityProperties.stream()
+                    .filter(e -> e.getPropertyName().equals(property))
+                    .findFirst().orElseGet(() -> dataManager.create(EntityProperty.class));
+            ep.setEntityName(itemDc.getEntityMetaClass().getName());
+            ep.setPropertyName(property);
+            ep.setUser(currentUser);
+            ep.setSortOrder(i);
+            toCommit.add(ep);
+        }
+        toRemove.removeAll(toCommit);
+
+        CommitContext commitContext = new CommitContext();
+        commitContext.setCommitInstances(toCommit);
+        commitContext.setRemoveInstances(toRemove);
+        commitContext.setDiscardCommitted(true);
+        commitContext.setSoftDeletion(false);
+        commitContext.setValidationMode(CommitContext.ValidationMode.NEVER_VALIDATE);
+        dataManager.commit(commitContext);
+    }
+
+    protected void initAddBtn() {
+        addBtn.removeAllActions();
+        for (ViewProperty property : previewView.getProperties()) {
+            if (!visibleProperties.contains(property.getName())) {
+                addBtn.addAction(new AddPropertyAction(property.getName()));
+            }
+        }
+        if (addBtn.getActions().isEmpty()) {
+            addBtn.setEnabled(false);
+        } else {
+            addBtn.setEnabled(true);
+        }
+    }
+
     @SuppressWarnings("unchecked")
-    private void createComponents(Entity item) {
+    protected void createComponents(Entity item) {
         // create a Grid container
         fieldsGrid = uiComponents.create(GridLayout.class);
         fieldsGrid.setId("fieldsGrid");
@@ -251,33 +339,6 @@ public class ItemPreviewFragment extends ScreenFragment {
         nextRowIndex++;
     }
 
-    public boolean isEditing() {
-        return isEditing;
-    }
-
-    public void setEditing(boolean editing) {
-        if (editing != isEditing) {
-            isEditing = editing;
-            editBtn.setVisible(!editing);
-            addBtn.setVisible(editing);
-            removeBtn.setVisible(editing);
-            selectAllCheckBox.setVisible(editing);
-            editActions.setVisible(editing);
-
-            // hide/show edit controls in grid rows
-            for (int i = 0; i < visibleProperties.size(); i++) {
-                fieldsGrid.getComponentNN(0, i).setVisible(editing);
-                fieldsGrid.getComponentNN(2, i).setVisible(editing);
-            }
-
-            if (itemDc.getItemOrNull() == null && !editing) {
-                panelCaption.setValue(messages.getMainMessage("lupreview.noItemCaption"));
-                fieldsGrid.setVisible(false);
-                editBtn.setVisible(false);
-            }
-        }
-    }
-
     @Subscribe("selectAllCheckBox")
     protected void onSelectAllCheckBoxValueChange(HasValue.ValueChangeEvent<Boolean> event) {
         if (!event.isUserOriginated()) return;
@@ -297,6 +358,7 @@ public class ItemPreviewFragment extends ScreenFragment {
 
     @Subscribe("saveBtn")
     protected void onSaveBtnClick(Button.ClickEvent event) {
+        saveVisibleProperties();
         setEditing(false);
     }
 

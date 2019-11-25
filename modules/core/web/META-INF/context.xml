@@ -1,18 +1,53 @@
 <Context>
 
     <!-- Database connection -->
-    <Resource
-      name="jdbc/CubaDS"
-      type="javax.sql.DataSource"
-      maxTotal="20"
-      maxIdle="2"
-      maxWaitMillis="5000"
-      driverClassName="org.hsqldb.jdbc.JDBCDriver"
-      url="jdbc:hsqldb:hsql://localhost:9010/lupreview-IIidrEPiF"
-      username="sa"
-      password=""/>
 
     <!-- Switch off session serialization -->
     <Manager pathname=""/>
+    <!--<Resource driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver"
+          maxIdle="2"
+          maxTotal="20"
+          maxWaitMillis="5000"
+          name="jdbc/CubaDS"
+          password="saPass.123"
+          type="javax.sql.DataSource"
+          url="jdbc:sqlserver://localhost;databaseName=lupreview"
+          username="sa"/>-->
+    <!--<Resource driverClassName="org.postgresql.Driver"
+          maxIdle="2"
+          maxTotal="20"
+          maxWaitMillis="5000"
+          name="jdbc/CubaDS"
+          password="cuba"
+          type="javax.sql.DataSource"
+          url="jdbc:postgresql://localhost:54322/lupreview"
+          username="cuba"/>-->
+    <!--<Resource driverClassName="org.mariadb.jdbc.Driver"
+          maxIdle="2"
+          maxTotal="20"
+          maxWaitMillis="5000"
+          name="jdbc/CubaDS"
+          password="cuba"
+          type="javax.sql.DataSource"
+          url="jdbc:mariadb://localhost:33066/lupreview"
+          username="cuba"/>-->
+    <!--<Resource driverClassName="oracle.jdbc.OracleDriver"
+          maxIdle="2"
+          maxTotal="20"
+          maxWaitMillis="5000"
+          name="jdbc/CubaDS"
+          password="oracle"
+          type="javax.sql.DataSource"
+          url="jdbc:oracle:thin:@//localhost:49161/xe"
+          username="system"/>-->
+    <Resource driverClassName="org.hsqldb.jdbc.JDBCDriver"
+              maxIdle="2"
+              maxTotal="20"
+              maxWaitMillis="5000"
+              name="jdbc/CubaDS"
+              password=""
+              type="javax.sql.DataSource"
+              url="jdbc:hsqldb:hsql://localhost:9010/lupreview-IIidrEPiF"
+              username="sa"/>
 
 </Context>
