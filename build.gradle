@@ -29,7 +29,7 @@ cuba {
     artifact {
         group = 'it.nexbit.cuba.lookuppreview'
         version = '1.0'
-        isSnapshot = true
+        isSnapshot = false
     }
     tomcat {
         dir = "$project.rootDir/deploy/tomcat"
@@ -113,7 +113,7 @@ configure(coreModule) {
         dbName = 'lupreview-IIidrEPiF'
         dbUser = 'sa'
         dbPassword = ''
-    }
+        }
 
     task updateDb(dependsOn: assembleDbScripts, description: 'Updates local database', type: CubaDbUpdate) {
         dbms = 'hsql'
@@ -121,7 +121,7 @@ configure(coreModule) {
         dbName = 'lupreview-IIidrEPiF'
         dbUser = 'sa'
         dbPassword = ''
-    }
+        }
 }
 
 configure(webModule) {
@@ -204,3 +204,4 @@ task restart(dependsOn: ['stop', ":${modulePrefix}-core:deploy", ":${modulePrefi
     }
 }
 
+apply from: 'extra.gradle'
