@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<app-component xmlns="http://schemas.haulmont.com/cuba/app-component.xsd"
+               dependsOn="com.haulmont.addon.globalevents, com.haulmont.cuba">
+
+    <module name="global" blocks="*">
+        <artifact name="lupreview-global" appJar="true"/>
+
+        <property name="cuba.persistenceConfig"
+                  value="+it/nexbit/cuba/lookuppreview/persistence.xml"/>
+        <property name="cuba.metadataConfig" value="+it/nexbit/cuba/lookuppreview/metadata.xml"/>
+        <property name="cuba.viewsConfig" value="+it/nexbit/cuba/lookuppreview/views.xml"/>
+    </module>
+    <module name="core" dependsOn="global" blocks="core">
+        <artifact name="lupreview-core" appJar="true"/>
+        <artifact name="lupreview-core" classifier="db" ext="zip" configuration="dbscripts"/>
+
+        <property name="cuba.springContextConfig"
+                  value="+it/nexbit/cuba/lookuppreview/spring.xml"/>
+        <property name="cuba.mainMessagePack" value="+it.nexbit.cuba.lookuppreview.core"/>
+    </module>
+    <module name="web" dependsOn="global" blocks="web">
+        <artifact name="lupreview-web" appJar="true"/>
+        <artifact name="lupreview-web" classifier="web" ext="zip" configuration="webcontent"/>
+        <artifact name="lupreview-web" ext="jar" configuration="themes"/>
+
+        <property name="cuba.springContextConfig"
+                  value="+it/nexbit/cuba/lookuppreview/web-spring.xml"/>
+        <property name="cuba.dispatcherSpringContextConfig"
+                  value="+it/nexbit/cuba/lookuppreview/web-dispatcher-spring.xml"/>
+        <property name="cuba.windowConfig" value="+it/nexbit/cuba/lookuppreview/web-screens.xml"/>
+        <property name="cuba.menuConfig" value="+it/nexbit/cuba/lookuppreview/web-menu.xml"/>
+        <property name="cuba.permissionConfig"
+                  value="+it/nexbit/cuba/lookuppreview/web-permissions.xml"/>
+        <property name="cuba.mainMessagePack" value="+it.nexbit.cuba.lookuppreview.web"/>
+    </module>
+</app-component>
